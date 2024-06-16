@@ -1,5 +1,5 @@
 package domain
 
 type SenderService interface {
-	SendMessage() error
+	SendMessage() (int, error)
 }

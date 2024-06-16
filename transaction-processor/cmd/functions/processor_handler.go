@@ -22,14 +22,17 @@ func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	)
 
 	accountId := request.PathParameters["accountId"]
-	log.Printf("[INFO] :: %s", accountId) // TODO:: REMOVE THIS ONLY to TESTS
 	accountIdMsg := fmt.Sprintf("for AccountId { %s }", accountId)
+	log.Printf("[INFO] :: %s", accountId) // TODO:: REMOVE THIS ONLY to TESTS
 
 	csvTransactionService := application.NewCsvTransactionService(
 		infrastructure.NewPostgresAccountRepository(),
 		infrastructure.NewPostgresTransactionRepository(),
 	)
 	statusCode, err := csvTransactionService.Run(accountId)
+
+	emailSenderService := application.NewEmailSenderService()
+	statusCode, err = emailSenderService.SendMessage()
 
 	if err != nil {
 		message := fmt.Sprintf("API call failed %s: %s", accountIdMsg, err.Error())
@@ -46,7 +49,6 @@ func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		Message: fmt.Sprintf("Transaction processed %s", accountIdMsg),
 		Status:  SUCCESS,
 	})
-
 	return events.APIGatewayProxyResponse{Body: string(marshalledResponse), StatusCode: statusCode}, nil
 }
 

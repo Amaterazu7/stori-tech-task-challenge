@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/amaterazu7/transaction-processor/internal/domain"
-	"github.com/amaterazu7/transaction-processor/internal/domain/model"
+	"github.com/amaterazu7/transaction-processor/internal/domain/models"
 	"github.com/google/uuid"
 	"log"
 )
@@ -31,7 +31,7 @@ func (cts CsvTransactionService) Run(accountId string) (int, error) {
 		return 404, errors.New("account ID is not valid")
 	}
 
-	tx := model.Transaction{}
+	tx := models.Transaction{}
 	err = cts.CreateTransactionList(&tx)
 	if err != nil {
 		return 500, errors.New(fmt.Sprintf("creating Transaction: %s", err.Error()))
@@ -43,20 +43,15 @@ func (cts CsvTransactionService) Run(accountId string) (int, error) {
 		return 500, errors.New(fmt.Sprintf("persisting Transaction: %s", err.Error()))
 	}
 
-	err = cts.SendTransactionByEmail()
-	if err != nil {
-		return 500, errors.New(fmt.Sprintf("sending Transaction: %s", err.Error()))
-	}
-
 	return 200, nil
 }
 func (cts CsvTransactionService) ValidateAccount(accountId string) (bool, error) {
-	// TODO: call repository and validate if account exit
+	// TODO: call repositories and validate if account exit
 	cts.AccountRepository.FindById()
 	return true, nil
 }
 
-func (cts CsvTransactionService) CreateTransactionList(transaction *model.Transaction) error {
+func (cts CsvTransactionService) CreateTransactionList(transaction *models.Transaction) error {
 	// TODO: convert to transaction
 	// transaction.Build(uuid.New())
 	transaction.Id = uuid.New()
@@ -65,12 +60,7 @@ func (cts CsvTransactionService) CreateTransactionList(transaction *model.Transa
 }
 
 func (cts CsvTransactionService) PersistTransaction() error {
-	// TODO: call repository and save the transaction in the DB
+	// TODO: call repositories and save the transaction in the DB
 	cts.TransactionRepository.Save()
-	return nil
-}
-
-func (cts CsvTransactionService) SendTransactionByEmail() error {
-	// TODO: create a email msg and send by email
 	return nil
 }
