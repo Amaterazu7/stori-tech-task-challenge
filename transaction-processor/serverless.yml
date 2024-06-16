@@ -1,0 +1,36 @@
+app: transaction-processor
+service: transaction-processor
+
+plugins:
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: go1.x
+  memorySize: 256
+  timeout: 60
+  stage: local
+  tracing:
+    lambda: true
+
+custom:
+  serverless-offline:
+    noPrependStageInUrl: true
+    useDocker: true
+    httpPort: 4007
+
+functions:
+  list:
+    handler: bin/processor
+    package:
+      include:
+        - ./bin/processor
+    events:
+      - http:
+          path: /processor/{accountId}
+          method: get
+          cors: true
+          request:
+            parameters:
+              paths:
+                accountId: true

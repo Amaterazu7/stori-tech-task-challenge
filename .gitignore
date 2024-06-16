@@ -12,3 +12,27 @@ out/
 
 ### Mac OS ###
 .DS_Store
+
+### Transaction Processor ###
+transaction-processor/.serverless/
+transaction-processor/bin/
+transaction-processor/*.pyc
+transaction-processor/*.pyo
+
+# Binaries for programs and plugins
+transaction-processor/*.exe
+transaction-processor/*.exe~
+transaction-processor/*.dll
+transaction-processor/*.so
+transaction-processor/*.dylib
+
+# Test binary, built with `go test -c`
+transaction-processor/*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+transaction-processor/*.out
+
+# Dependency directories (remove the comment below to include it)
+# vendor/
+
+transaction-processor/node_modules/
