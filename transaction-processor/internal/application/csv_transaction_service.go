@@ -9,42 +9,64 @@ import (
 	"log"
 )
 
-type CsvTransactionService struct{}
-
-func NewCsvTransactionService() domain.TransactionService {
-	return &CsvTransactionService{}
+type CsvTransactionService struct {
+	AccountRepository     domain.AccountRepository
+	TransactionRepository domain.TransactionRepository
 }
 
-func (cts CsvTransactionService) Run() error {
-	tx, err := cts.CreateTransaction()
-	if err != nil {
-		message := fmt.Sprintf("Creating Transaction: %s", err.Error())
-		return errors.New(message)
+func NewCsvTransactionService(
+	accountRepository domain.AccountRepository,
+	transactionRepository domain.TransactionRepository,
+) domain.TransactionService {
+	return &CsvTransactionService{
+		AccountRepository:     accountRepository,
+		TransactionRepository: transactionRepository,
+	}
+}
+
+func (cts CsvTransactionService) Run(accountId string) (int, error) {
+	isValid, err := cts.ValidateAccount(accountId)
+	if !isValid || err != nil {
+		log.Printf("Account ID is not valid : %s", err.Error())
+		return 404, errors.New("account ID is not valid")
 	}
 
-	log.Printf("[INFO] :: Created Transaction: %s", &tx.Id)
+	tx := model.Transaction{}
+	err = cts.CreateTransactionList(&tx)
+	if err != nil {
+		return 500, errors.New(fmt.Sprintf("creating Transaction: %s", err.Error()))
+	}
+	log.Printf("[INFO] :: Created Transaction: %s", &tx.Id) // TODO:: REMOVE THIS ONLY to TESTS
 
 	err = cts.PersistTransaction()
 	if err != nil {
-		message := fmt.Sprintf("Persisting Transaction: %s", err.Error())
-		return errors.New(message)
+		return 500, errors.New(fmt.Sprintf("persisting Transaction: %s", err.Error()))
 	}
 
 	err = cts.SendTransactionByEmail()
 	if err != nil {
-		return errors.New(fmt.Sprintf("Sending Transaction: %s", err.Error()))
+		return 500, errors.New(fmt.Sprintf("sending Transaction: %s", err.Error()))
 	}
+
+	return 200, nil
+}
+func (cts CsvTransactionService) ValidateAccount(accountId string) (bool, error) {
+	// TODO: call repository and validate if account exit
+	cts.AccountRepository.FindById()
+	return true, nil
+}
+
+func (cts CsvTransactionService) CreateTransactionList(transaction *model.Transaction) error {
+	// TODO: convert to transaction
+	// transaction.Build(uuid.New())
+	transaction.Id = uuid.New()
 
 	return nil
 }
 
-func (cts CsvTransactionService) CreateTransaction() (*model.Transaction, error) {
-	// TODO: convert to transaction
-	return &model.Transaction{Id: uuid.New()}, nil
-}
-
 func (cts CsvTransactionService) PersistTransaction() error {
 	// TODO: call repository and save the transaction in the DB
+	cts.TransactionRepository.Save()
 	return nil
 }
 
