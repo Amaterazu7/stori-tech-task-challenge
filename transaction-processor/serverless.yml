@@ -10,14 +10,35 @@ provider:
   memorySize: 256
   timeout: 60
   stage: local
+  environment:
+    S3Bucket: "transaction-processor-bucket"
   tracing:
     lambda: true
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "s3:ListBucket"
+      Resource:
+        - "arn:aws:s3:::${self:provider.environment.S3Bucket}"
+    - Effect: "Allow"
+      Action:
+        - "s3:GetObject"
+      Resource:
+        - "arn:aws:s3:::${self:provider.environment.S3Bucket}/*"
 
 custom:
   serverless-offline:
     noPrependStageInUrl: true
     useDocker: true
     httpPort: 4007
+  s3:
+    host: localhost
+    directory: ../source
+
+package:
+  patterns:
+    - "!*/**"
+    - "bin/**"
 
 functions:
   list:
@@ -34,3 +55,10 @@ functions:
             parameters:
               paths:
                 accountId: true
+
+resources:
+  Resources:
+    TransactionProcessorBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: transaction-processor-bucket

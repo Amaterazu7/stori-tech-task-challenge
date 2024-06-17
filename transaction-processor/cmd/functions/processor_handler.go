@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/amaterazu7/transaction-processor/internal/application"
 	"github.com/amaterazu7/transaction-processor/internal/infrastructure"
+	"github.com/amaterazu7/transaction-processor/internal/infrastructure/persistence"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"log"
@@ -21,6 +22,7 @@ func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		FAILED  = "CREDIT"
 	)
 
+	log.Printf("[INFO] :: Starting Lambda Handler :: ")
 	accountId := request.PathParameters["accountId"]
 	accountIdMsg := fmt.Sprintf("for AccountId { %s }", accountId)
 	log.Printf("[INFO] :: %s", accountId) // TODO:: REMOVE THIS ONLY to TESTS
@@ -28,6 +30,7 @@ func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	csvTransactionService := application.NewCsvTransactionService(
 		infrastructure.NewPostgresAccountRepository(),
 		infrastructure.NewPostgresTransactionRepository(),
+		persistence.NewS3BucketRepository("us-east-1"),
 	)
 	statusCode, err := csvTransactionService.Run(accountId)
 

@@ -5,6 +5,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "serverless-offline": "^13.6.0"
+    "serverless-offline": "^13.6.0",
+    "serverless-s3-local": "^0.8.4"
   }
 }

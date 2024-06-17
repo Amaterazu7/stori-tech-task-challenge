@@ -13,6 +13,16 @@ deploy: clean build
 format:
 	gofmt -w cmd/functions/processor_handler.go
 
+## S3
+upload-csv:
+	aws s3 cp ../source/transaction_list.csv s3://transaction-processor-bucket \
+    	--endpoint-url http://localhost:4566
+	aws --endpoint=http://localhost:4566/ s3 ls
+list-s3:
+	aws --endpoint-url http://localhost:4566 s3 ls s3://transaction-processor-bucket
+
+## APP
 start: clean build
+	# AWS_ACCESS_KEY_ID=S3RVER AWS_SECRET_ACCESS_KEY=S3RVER sls offline start --host 0.0.0.0
 	sls offline start --host 0.0.0.0
 	# sls offline start --stage development --region us-east-1

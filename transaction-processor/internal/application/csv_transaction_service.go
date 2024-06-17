@@ -10,17 +10,20 @@ import (
 )
 
 type CsvTransactionService struct {
-	AccountRepository     domain.AccountRepository
-	TransactionRepository domain.TransactionRepository
+	AccountRepository      domain.AccountRepository
+	TransactionRepository  domain.TransactionRepository
+	HandleBucketRepository domain.HandleBucketRepository
 }
 
 func NewCsvTransactionService(
 	accountRepository domain.AccountRepository,
 	transactionRepository domain.TransactionRepository,
+	handleBucketRepository domain.HandleBucketRepository,
 ) domain.TransactionService {
 	return &CsvTransactionService{
-		AccountRepository:     accountRepository,
-		TransactionRepository: transactionRepository,
+		AccountRepository:      accountRepository,
+		TransactionRepository:  transactionRepository,
+		HandleBucketRepository: handleBucketRepository,
 	}
 }
 
@@ -45,6 +48,7 @@ func (cts CsvTransactionService) Run(accountId string) (int, error) {
 
 	return 200, nil
 }
+
 func (cts CsvTransactionService) ValidateAccount(accountId string) (bool, error) {
 	// TODO: call repositories and validate if account exit
 	cts.AccountRepository.FindById()
@@ -54,6 +58,12 @@ func (cts CsvTransactionService) ValidateAccount(accountId string) (bool, error)
 func (cts CsvTransactionService) CreateTransactionList(transaction *models.Transaction) error {
 	// TODO: convert to transaction
 	// transaction.Build(uuid.New())
+
+	err := cts.HandleBucketRepository.FindFileByName("transaction_list.csv")
+	if err != nil {
+		return errors.New(err.Error())
+	}
+
 	transaction.Id = uuid.New()
 
 	return nil

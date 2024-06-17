@@ -1,0 +1,16 @@
+services:
+  s3-storage:
+    image: localstack/localstack:latest
+    ports:
+      - '4566:4566' # LocalStack endpoint
+      - '4510-4559:4510-4559' # external services port range
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - SERVICES=s3
+      - DEBUG=1
+      - DEFAULT_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=S3RVER
+      - AWS_SECRET_ACCESS_KEY=S3RVER
+    volumes:
+      - ./volumes/s3-storage/localstack-script.sh:/etc/localstack/init/ready.d/script.sh
+      - '/var/run/docker.sock:/var/run/docker.sock'
