@@ -23,8 +23,6 @@ services:
     environment:
       MYSQL_DATABASE: 'transactions'
       MYSQL_USER: 'goferProcessor'
-      MYSQL_PASSWORD: '_GoProcessor#2024_'
-      MYSQL_ROOT_PASSWORD: '_rootGoProcessor#2024_'
     volumes:
       - ./volumes/mysql-db:/docker-entrypoint-initdb.d
     expose:

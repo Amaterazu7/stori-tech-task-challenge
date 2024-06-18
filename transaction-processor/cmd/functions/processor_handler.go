@@ -36,6 +36,7 @@ func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 
 		return events.APIGatewayProxyResponse{Body: string(marshalledErr), StatusCode: 500}, nil
 	}
+	defer dbConn.Close()
 
 	csvTransactionService := application.NewCsvTransactionService(
 		accountId,

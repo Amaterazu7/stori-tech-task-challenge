@@ -17,11 +17,9 @@ func NewMySqlAccountRepository(dbConn *sql.DB) domain.AccountRepository {
 	}
 }
 
-func scanRow(rows *sql.Rows) (*models.Account, error) {
+func scanRow(row *sql.Row) (*models.Account, error) {
 	account := new(models.Account)
-	err := rows.Scan(
-		&account.Id, &account.Name, &account.Asset, &account.Type, &account.UpdatedAt, &account.CreatedAt,
-	)
+	err := row.Scan(&account.Id, &account.Name, &account.Asset, &account.Type, &account.UpdatedAt, &account.CreatedAt)
 
 	if err != nil {
 		return nil, err
@@ -30,20 +28,14 @@ func scanRow(rows *sql.Rows) (*models.Account, error) {
 }
 
 func (mar MySqlAccountRepository) FindById(id string) (*models.Account, error) {
-	rows, err := mar.mySqlDBConn.Query(
-		"SELECT * FROM `account` WHERE id=?", id,
-	)
+	row := mar.mySqlDBConn.QueryRow("SELECT * FROM `account` WHERE id = ?", id)
+
+	log.Printf("==== TEST ===")
+	account, err := scanRow(row)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	account, err := scanRow(rows)
-
 	log.Printf("ACCOUNT FROM Repository :: %v", account)
-	if err != nil {
-		return nil, err
-	}
 
 	return account, nil
 }

@@ -52,7 +52,11 @@ func NewCsvTransactionService(
 func (cts CsvTransactionService) RunProcessor() (int, error) {
 	isValid, err := cts.ValidateAccount()
 	if !isValid || err != nil {
-		return 404, errors.New(fmt.Sprintf("Account ID is not valid"))
+		var msg = ""
+		if err != nil {
+			msg = err.Error()
+		}
+		return 404, errors.New(fmt.Sprintf("Account ID is not valid, %s", msg))
 	}
 
 	// fileName := cts.TransactionResult.AccountId + "transaction_list.csv" // TODO: MOVE to EnV
