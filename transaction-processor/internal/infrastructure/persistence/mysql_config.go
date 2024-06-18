@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"os"
+	"time"
 )
 
 type DBConfig struct {
@@ -16,11 +18,11 @@ type DBConfig struct {
 
 func NewDBConfig() *DBConfig {
 	return &DBConfig{
-		host:     "host.docker.internal",  //os.Getenv("MYSQL_HOST"),
-		port:     "3306",                  // os.Getenv("MYSQL_PORT"),
-		username: "goferProcessor",        // os.Getenv("MYSQL_USER"),
-		password: "_GoProcessor#2024_",    // os.Getenv("MYSQL_PASSWORD"),
-		database: "transaction-processor", // os.Getenv("MYSQL_DATABASE_NAME"),
+		host:     os.Getenv("MYSQL_HOST"),
+		port:     os.Getenv("MYSQL_PORT"),
+		username: os.Getenv("MYSQL_USER"),
+		password: os.Getenv("MYSQL_PASSWORD"),
+		database: os.Getenv("MYSQL_DATABASE_NAME"),
 	}
 }
 
@@ -33,10 +35,14 @@ func (config *DBConfig) ConnectToDB() (*sql.DB, error) {
 		config.port,
 		config.database,
 	)
-
 	db, err := sql.Open("mysql", connectionString)
 	if err != nil {
 		return nil, err
 	}
+
+	db.SetConnMaxLifetime(time.Minute * 3)
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(10)
+
 	return db, nil
 }

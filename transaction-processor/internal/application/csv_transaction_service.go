@@ -7,6 +7,7 @@ import (
 	"github.com/amaterazu7/transaction-processor/internal/domain/models"
 	"github.com/google/uuid"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -59,8 +60,13 @@ func (cts CsvTransactionService) RunProcessor() (int, error) {
 		return 404, errors.New(fmt.Sprintf("Account ID is not valid, %s", msg))
 	}
 
-	// fileName := cts.TransactionResult.AccountId + "transaction_list.csv" // TODO: MOVE to EnV
-	content, err := cts.HandleBucketRepository.FindFileByName("17d340fa-5bf5-4429-8167-bafe4c0af0a7_transaction_list.csv")
+	var fileName strings.Builder
+	fileName.WriteString(cts.TransactionResult.AccountId)
+	fileName.WriteString("_")
+	fileName.WriteString(os.Getenv("SOURCE_FILE_NAME"))
+	// "17d340fa-5bf5-4429-8167-bafe4c0af0a7_transaction_list.csv"
+
+	content, err := cts.HandleBucketRepository.FindFileByName(fileName.String())
 	if err != nil {
 		return 502, errors.New(err.Error())
 	}
@@ -74,11 +80,7 @@ func (cts CsvTransactionService) RunProcessor() (int, error) {
 			return 500, errors.New(fmt.Sprintf("Creating Transaction: %s", err.Error()))
 		}
 
-		// TODO:: REMOVE THIS ONLY to TESTS
-		//  log.Printf("\n [INFO] :: ")
-		//  log.Printf("%v", tx)
-
-		err = cts.PersistTransaction()
+		err = cts.PersistTransaction(tx)
 		if err != nil {
 			return 500, errors.New(fmt.Sprintf("Persisting Transaction: %s", err.Error()))
 		}
@@ -89,19 +91,18 @@ func (cts CsvTransactionService) RunProcessor() (int, error) {
 
 func (cts CsvTransactionService) ValidateAccount() (bool, error) {
 	account, err := cts.AccountRepository.FindById(cts.TransactionResult.AccountId)
-	log.Printf("\n [INFO] :: ")
-	log.Printf("REF:: %v", account)
-	log.Printf("ACCOUNT:: %v", &account)
-
+	log.Printf(" =+=+=+=+=+=+= REF:: %v", account)
 	if err != nil || account == nil {
 		return false, err
 	}
 	return true, nil
 }
 
-func (cts CsvTransactionService) PersistTransaction() error {
-	// TODO: call repositories and save the transaction in the DB
-	cts.TransactionRepository.Save()
+func (cts CsvTransactionService) PersistTransaction(tx models.Transaction) error {
+	err := cts.TransactionRepository.Save(tx)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -135,6 +136,8 @@ func createTransactionFromString(txCrud string, accountId string, transaction *m
 	transaction.Amount = txCrudAmount
 	transaction.TxType = txType
 	transaction.CreatedAt = txCrudDate
+
+	log.Printf(" =+=+=+=+=+=+= TX from CSV:: %v", transaction) // TODO: REMOVE
 
 	return nil
 }

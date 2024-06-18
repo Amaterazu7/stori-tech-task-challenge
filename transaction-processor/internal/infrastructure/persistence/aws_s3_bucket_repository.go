@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"log"
+	"os"
 )
 
 type S3BucketRepository struct {
@@ -19,16 +20,14 @@ type S3BucketRepository struct {
 }
 
 func NewS3BucketRepository(name string, region string) domain.HandleBucketRepository {
-	// TODO: MOVE to EnV
-	// 		endpoint := os.Getenv("AWS_ENDPOINT")
-	// 		endpoint := os.Getenv("AWS_ACCESS_KEY_ID")
-	// 		endpoint := os.Getenv("AWS_SECRET_ACCESS_KEY")
-	endpoint := "http://host.docker.internal:4566" // TODO: MOVE to EnV
-	s3ForcePathStyle := true                       // TODO: MOVE to EnV
+	accessKey := os.Getenv("AWS_ACCESS_KEY_ID")
+	secretAccess := os.Getenv("AWS_SECRET_ACCESS_KEY")
+	endpoint := os.Getenv("AWS_S3_BUCKET_ENDPOINT")
+	s3ForcePathStyle := true
 	sess, err := session.NewSession(
 		&aws.Config{
 			Region:           aws.String(region),
-			Credentials:      credentials.NewStaticCredentials("S3RVER", "S3RVER", ""), // TODO: MOVE to EnV
+			Credentials:      credentials.NewStaticCredentials(accessKey, secretAccess, ""),
 			S3ForcePathStyle: &s3ForcePathStyle,
 			Endpoint:         &endpoint,
 		},

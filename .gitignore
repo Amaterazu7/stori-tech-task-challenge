@@ -36,3 +36,6 @@ transaction-processor/*.out
 # vendor/
 
 transaction-processor/node_modules/
+
+.env
+transaction-processor/.env

@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"github.com/amaterazu7/transaction-processor/internal/domain"
 	"github.com/amaterazu7/transaction-processor/internal/domain/models"
-	"log"
 )
 
 type MySqlAccountRepository struct {
@@ -30,12 +29,10 @@ func scanRow(row *sql.Row) (*models.Account, error) {
 func (mar MySqlAccountRepository) FindById(id string) (*models.Account, error) {
 	row := mar.mySqlDBConn.QueryRow("SELECT * FROM `account` WHERE id = ?", id)
 
-	log.Printf("==== TEST ===")
 	account, err := scanRow(row)
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("ACCOUNT FROM Repository :: %v", account)
 
 	return account, nil
 }

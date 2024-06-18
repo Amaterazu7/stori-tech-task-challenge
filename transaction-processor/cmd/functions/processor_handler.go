@@ -8,7 +8,9 @@ import (
 	"github.com/amaterazu7/transaction-processor/internal/infrastructure/persistence"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/joho/godotenv"
 	"log"
+	"os"
 )
 
 type Response struct {
@@ -25,6 +27,10 @@ func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	log.Printf("[INFO] :: Starting Lambda Handler :: ")
 	accountId := request.PathParameters["accountId"]
 	accountIdMsg := fmt.Sprintf("for AccountId { %s }", accountId)
+	err := godotenv.Load()
+	if err != nil {
+		log.Printf("[ERROR] :: Loading .env file failed :: ")
+	}
 
 	dbConn, dbConnErr := persistence.NewDBConfig().ConnectToDB()
 	if dbConnErr != nil {
@@ -42,7 +48,7 @@ func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		accountId,
 		infrastructure.NewMySqlAccountRepository(dbConn),
 		infrastructure.NewMySqlTransactionRepository(dbConn),
-		persistence.NewS3BucketRepository("transaction-processor-bucket", "us-east-1"), // TODO: MOVE to EnV
+		persistence.NewS3BucketRepository(os.Getenv("AWS_S3_BUCKET_NAME"), os.Getenv("AWS_REGION")),
 	)
 	statusCode, processorErr := csvTransactionService.RunProcessor()
 

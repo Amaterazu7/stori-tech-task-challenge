@@ -21,8 +21,10 @@ services:
     ports:
       - '3306:3306'
     environment:
-      MYSQL_DATABASE: 'transactions'
-      MYSQL_USER: 'goferProcessor'
+      MYSQL_DATABASE: ${MYSQL_DATABASE_NAME}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD:  ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     volumes:
       - ./volumes/mysql-db:/docker-entrypoint-initdb.d
     expose:
