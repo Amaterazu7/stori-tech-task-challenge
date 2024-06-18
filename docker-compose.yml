@@ -1,9 +1,9 @@
 services:
   s3-storage:
     image: localstack/localstack:latest
+    container_name: 'processor-s3-storage'
     ports:
-      - '4566:4566' # LocalStack endpoint
-      - '4510-4559:4510-4559' # external services port range
+      - '4566:4566'
     environment:
       - DOCKER_HOST=unix:///var/run/docker.sock
       - SERVICES=s3
@@ -13,4 +13,19 @@ services:
       - AWS_SECRET_ACCESS_KEY=S3RVER
     volumes:
       - ./volumes/s3-storage/localstack-script.sh:/etc/localstack/init/ready.d/script.sh
-      - '/var/run/docker.sock:/var/run/docker.sock'
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  mysql-db:
+    image: mysql:5.7
+    container_name: 'processor-mysql-db'
+    ports:
+      - '3306:3306'
+    environment:
+      MYSQL_DATABASE: 'transactions'
+      MYSQL_USER: 'goferProcessor'
+      MYSQL_PASSWORD: '_GoProcessor#2024_'
+      MYSQL_ROOT_PASSWORD: '_rootGoProcessor#2024_'
+    volumes:
+      - ./volumes/mysql-db:/docker-entrypoint-initdb.d
+    expose:
+      - '3306'

@@ -1,4 +1,4 @@
-TId;Date;Transaction
+txId;txDate;transaction
 7cc31767-97c9-4c3b-1cef-50c2e666f8de;2024/07/26;+60.5
 7cc31767-97c9-4c3b-2cef-50c2e666f8de;2024/07/30;-10.3
 7cc31767-97c9-4c3b-3cef-50c2e666f8de;2024/08/26;-20.46

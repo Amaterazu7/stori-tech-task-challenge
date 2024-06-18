@@ -5,18 +5,28 @@ import (
 	"time"
 )
 
+type AssetTypes string
+
 const (
-	USD = "USD"
-	GBP = "GBP"
-	EUR = "EUR"
-	ETH = "CRYPTO"
-	BTC = "CRYPTO"
+	CASH   AssetTypes = "CASH"
+	CRYPTO AssetTypes = "CRYPTO"
+)
+
+type AccountTypes string
+
+const (
+	USD AccountTypes = "USD"
+	GBP AccountTypes = "GBP"
+	EUR AccountTypes = "EUR"
+	ETH AccountTypes = "ETH"
+	BTC AccountTypes = "BTC"
 )
 
 type Account struct {
 	Id        uuid.UUID
 	Name      string
-	Type      string
-	Asset     string
+	Asset     AssetTypes
+	Type      AccountTypes
+	UpdatedAt time.Time
 	CreatedAt time.Time
 }

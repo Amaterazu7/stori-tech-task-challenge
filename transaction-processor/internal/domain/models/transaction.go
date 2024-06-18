@@ -5,27 +5,28 @@ import (
 	"time"
 )
 
+type TxTypes string
+
 const (
-	DEBIT  = "DEBIT"
-	CREDIT = "CREDIT"
+	DEBIT  TxTypes = "DEBIT"
+	CREDIT TxTypes = "CREDIT"
 )
 
 type Transaction struct {
 	Id        uuid.UUID
 	AccountId uuid.UUID
 	Amount    float64
-	TxType    string
-	Reference string
+	TxType    TxTypes
 	CreatedAt time.Time
 }
 
+// TODO::  Add builderPatter
 func (tx Transaction) Build(
-	id uuid.UUID, accountId uuid.UUID, amount float64, txType string, reference string, createdAt time.Time,
+	id uuid.UUID, accountId uuid.UUID, amount float64, txType TxTypes, createdAt time.Time,
 ) {
 	tx.Id = id
 	tx.AccountId = accountId
 	tx.Amount = amount
 	tx.TxType = txType
-	tx.Reference = reference
 	tx.CreatedAt = createdAt
 }

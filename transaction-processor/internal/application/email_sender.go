@@ -17,7 +17,7 @@ func (es EmailSenderService) SendMessage() (int, error) {
 	err := es.SendTransactionByEmail()
 
 	if err != nil {
-		return 500, errors.New(fmt.Sprintf("sending Transaction: %s", err.Error()))
+		return 500, errors.New(fmt.Sprintf("Sending Transaction: %s", err.Error()))
 	}
 
 	return 200, nil

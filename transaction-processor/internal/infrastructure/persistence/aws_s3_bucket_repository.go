@@ -1,6 +1,8 @@
 package persistence
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"github.com/amaterazu7/transaction-processor/internal/domain"
 	"github.com/aws/aws-sdk-go/aws"
@@ -10,55 +12,70 @@ import (
 	"log"
 )
 
-type S3Client struct {
-	Region string
-	Sess   *session.Session
-	Svc    *s3.S3
-}
-
 type S3BucketRepository struct {
+	Name     string
 	Region   string
 	S3Client *s3.S3
 }
 
-func NewS3BucketRepository(region string) domain.HandleBucketRepository {
-	// endpoint := os.Getenv("AWS_ENDPOINT")
-	// endpoint := os.Getenv("AWS_ACCESS_KEY_ID")
-	// endpoint := os.Getenv("AWS_SECRET_ACCESS_KEY")
-	// endpoint := "http://localhost:4569"
-	endpoint := "http://host.docker.internal:4566"
-	s3ForcePathStyle := true
+func NewS3BucketRepository(name string, region string) domain.HandleBucketRepository {
+	// TODO: MOVE to EnV
+	// 		endpoint := os.Getenv("AWS_ENDPOINT")
+	// 		endpoint := os.Getenv("AWS_ACCESS_KEY_ID")
+	// 		endpoint := os.Getenv("AWS_SECRET_ACCESS_KEY")
+	endpoint := "http://host.docker.internal:4566" // TODO: MOVE to EnV
+	s3ForcePathStyle := true                       // TODO: MOVE to EnV
 	sess, err := session.NewSession(
 		&aws.Config{
 			Region:           aws.String(region),
-			Credentials:      credentials.NewStaticCredentials("S3RVER", "S3RVER", ""),
+			Credentials:      credentials.NewStaticCredentials("S3RVER", "S3RVER", ""), // TODO: MOVE to EnV
 			S3ForcePathStyle: &s3ForcePathStyle,
 			Endpoint:         &endpoint,
 		},
 	)
 	if err != nil {
 		log.Printf("[ERROR] :: Session Problem %v", err)
+		// TODO: Perhaps here we should return an error, if we are not enable to connect the session
+		// 			return "", errors.New(fmt.Sprintf("Session Problem - %v", err.Error()))
 	}
 
 	return &S3BucketRepository{
+		Name:     name,
 		Region:   region,
 		S3Client: s3.New(sess),
 	}
 }
 
-func (s3Bucket S3BucketRepository) FindFileByName(fileName string) error {
+func (s3Bucket S3BucketRepository) FindFileByName(fileName string) (string, error) {
+	rawObject, err := s3Bucket.S3Client.GetObject(
+		&s3.GetObjectInput{
+			Bucket: aws.String(s3Bucket.Name),
+			Key:    aws.String(fileName),
+		},
+	)
 
-	log.Printf("[INFO] :: NAME :: %s", fileName)
-	result, err := s3Bucket.S3Client.ListBuckets(nil) // GetObject()
+	buf := new(bytes.Buffer)
+	_, err = buf.ReadFrom(rawObject.Body)
 	if err != nil {
-		log.Printf("[ERROR] :: Unable to list buckets %v", err)
+		return "", errors.New(fmt.Sprintf("Unable to READ fom S3 - %v", err.Error()))
 	}
 
-	fmt.Println("Buckets:")
+	return buf.String(), nil
+}
 
-	for _, b := range result.Buckets {
-		fmt.Printf("* %s created on %s\n",
-			aws.StringValue(b.Name), aws.TimeValue(b.CreationDate))
+func (s3Bucket S3BucketRepository) Find() error {
+	result, err := s3Bucket.S3Client.ListBuckets(nil)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Unable to list buckets - %v", err.Error()))
 	}
+
+	for _, bucket := range result.Buckets {
+		log.Printf(
+			" [INFO] :: * [%s] bucket created on [%s]\n",
+			aws.StringValue(bucket.Name),
+			aws.TimeValue(bucket.CreationDate),
+		)
+	}
+
 	return nil
 }
