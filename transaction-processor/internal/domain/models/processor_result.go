@@ -29,14 +29,6 @@ func (pr *ProcessorResult) AddBalance(totalBalance float64) {
 	pr.TotalBalance += totalBalance
 }
 
-func (pr *ProcessorResult) CalculateAverageDebit(debitAmount float64, debitCount float64) {
-	pr.AverageDebitAmount = math.Round((debitAmount/debitCount)*100) / 100
-}
-
-func (pr *ProcessorResult) CalculateAverageCredit(creditAmount float64, creditCount float64) {
-	pr.AverageCreditAmount = math.Round((creditAmount/creditCount)*100) / 100
-}
-
 func (pr *ProcessorResult) FillAvgValues(tx *Transaction, debitAmount, debitCount, creditAmount, creditCount *float64) {
 	if tx.TxType == DEBIT {
 		*debitAmount += tx.Amount
@@ -45,6 +37,14 @@ func (pr *ProcessorResult) FillAvgValues(tx *Transaction, debitAmount, debitCoun
 		*creditAmount += tx.Amount
 		*creditCount++
 	}
+}
+
+func (pr *ProcessorResult) CalculateAverageDebit(debitAmount float64, debitCount float64) {
+	pr.AverageDebitAmount = math.Round((debitAmount/debitCount)*100) / 100
+}
+
+func (pr *ProcessorResult) CalculateAverageCredit(creditAmount float64, creditCount float64) {
+	pr.AverageCreditAmount = math.Round((creditAmount/creditCount)*100) / 100
 }
 
 func (pr *ProcessorResult) FillMap(tx *Transaction) {
