@@ -20,10 +20,7 @@ type Transaction struct {
 	CreatedAt time.Time
 }
 
-// TODO::  Add builderPatter
-func (tx Transaction) Build(
-	id uuid.UUID, accountId uuid.UUID, amount float64, txType TxTypes, createdAt time.Time,
-) {
+func (tx *Transaction) Build(id uuid.UUID, accountId uuid.UUID, amount float64, txType TxTypes, createdAt time.Time) {
 	tx.Id = id
 	tx.AccountId = accountId
 	tx.Amount = amount

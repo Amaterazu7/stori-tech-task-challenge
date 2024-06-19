@@ -6,24 +6,14 @@ import (
 	"github.com/amaterazu7/transaction-processor/internal/domain"
 	"github.com/amaterazu7/transaction-processor/internal/domain/models"
 	"github.com/google/uuid"
-	"log"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 )
 
-type TransactionResult struct {
-	AccountId           string
-	TotalBalance        float64
-	AverageDebitAmount  float64
-	AverageCreditAmount float64
-	AverageBalance      float64
-	MonthMap            map[string]int
-}
-
 type CsvTransactionService struct {
-	TransactionResult      TransactionResult
+	ProcessorResult        models.ProcessorResult
 	AccountRepository      domain.AccountRepository
 	TransactionRepository  domain.TransactionRepository
 	HandleBucketRepository domain.HandleBucketRepository
@@ -36,12 +26,11 @@ func NewCsvTransactionService(
 	handleBucketRepository domain.HandleBucketRepository,
 ) domain.TransactionService {
 	return &CsvTransactionService{
-		TransactionResult: TransactionResult{
+		ProcessorResult: models.ProcessorResult{
 			AccountId:           accountId,
 			TotalBalance:        0,
 			AverageDebitAmount:  0,
 			AverageCreditAmount: 0,
-			AverageBalance:      0,
 			MonthMap:            make(map[string]int),
 		},
 		AccountRepository:      accountRepository,
@@ -50,55 +39,59 @@ func NewCsvTransactionService(
 	}
 }
 
-func (cts CsvTransactionService) RunProcessor() (int, error) {
+func (cts *CsvTransactionService) RunProcessor() (int, *models.ProcessorResult, error) {
 	isValid, err := cts.ValidateAccount()
 	if !isValid || err != nil {
 		var msg = ""
 		if err != nil {
 			msg = err.Error()
 		}
-		return 404, errors.New(fmt.Sprintf("Account ID is not valid, %s", msg))
+		return 404, &models.ProcessorResult{}, errors.New(fmt.Sprintf("Account ID is not valid, %s", msg))
 	}
 
 	var fileName strings.Builder
-	fileName.WriteString(cts.TransactionResult.AccountId)
+	fileName.WriteString(cts.ProcessorResult.AccountId)
 	fileName.WriteString("_")
 	fileName.WriteString(os.Getenv("SOURCE_FILE_NAME"))
-	// "17d340fa-5bf5-4429-8167-bafe4c0af0a7_transaction_list.csv"
 
 	content, err := cts.HandleBucketRepository.FindFileByName(fileName.String())
 	if err != nil {
-		return 502, errors.New(err.Error())
+		return 502, &models.ProcessorResult{}, errors.New(err.Error())
 	}
 
-	rows := 0
+	rows, debitAmount, debitCount, creditAmount, creditCount := 0, 0.0, 0.0, 0.0, 0.0
 	for _, line := range strings.Fields(strings.ReplaceAll(content, "txId;txDate;transaction", "")) {
 		rows = rows + 1
 		tx := models.Transaction{}
-		err = createTransactionFromString(line, cts.TransactionResult.AccountId, &tx)
+		err = createTransactionFromString(line, cts.ProcessorResult.AccountId, &tx)
 		if err != nil {
-			return 500, errors.New(fmt.Sprintf("Creating Transaction: %s", err.Error()))
+			return 500, &models.ProcessorResult{}, errors.New(fmt.Sprintf("Creating Transaction: %s", err.Error()))
 		}
 
+		fillValues(&tx, &debitAmount, &debitCount, &creditAmount, &creditCount)
+		cts.ProcessorResult.AddBalance(tx.Amount)
 		err = cts.PersistTransaction(tx)
 		if err != nil {
-			return 500, errors.New(fmt.Sprintf("Persisting Transaction: %s", err.Error()))
+			return 500, &models.ProcessorResult{}, errors.New(fmt.Sprintf("Persisting Transaction: %s", err.Error()))
 		}
 	}
 
-	return 200, nil
+	cts.ProcessorResult.CalculateAverageDebit(debitAmount, debitCount)
+	cts.ProcessorResult.CalculateAverageCredit(creditAmount, creditCount)
+
+	return 200, &cts.ProcessorResult, nil
 }
 
-func (cts CsvTransactionService) ValidateAccount() (bool, error) {
-	account, err := cts.AccountRepository.FindById(cts.TransactionResult.AccountId)
-	log.Printf(" =+=+=+=+=+=+= REF:: %v", account)
+func (cts *CsvTransactionService) ValidateAccount() (bool, error) {
+	account, err := cts.AccountRepository.FindById(cts.ProcessorResult.AccountId)
 	if err != nil || account == nil {
 		return false, err
 	}
+	cts.ProcessorResult.SetEmail(account.Email)
 	return true, nil
 }
 
-func (cts CsvTransactionService) PersistTransaction(tx models.Transaction) error {
+func (cts *CsvTransactionService) PersistTransaction(tx models.Transaction) error {
 	err := cts.TransactionRepository.Save(tx)
 	if err != nil {
 		return err
@@ -131,13 +124,17 @@ func createTransactionFromString(txCrud string, accountId string, transaction *m
 	if txCrudAmount > 0 {
 		txType = models.CREDIT
 	}
-	transaction.Id = txCrudId
-	transaction.AccountId = txAccountCrudId
-	transaction.Amount = txCrudAmount
-	transaction.TxType = txType
-	transaction.CreatedAt = txCrudDate
-
-	log.Printf(" =+=+=+=+=+=+= TX from CSV:: %v", transaction) // TODO: REMOVE
+	transaction.Build(txCrudId, txAccountCrudId, txCrudAmount, txType, txCrudDate)
 
 	return nil
+}
+
+func fillValues(tx *models.Transaction, debitAmount, debitCount, creditAmount, creditCount *float64) {
+	if tx.TxType == models.DEBIT {
+		*debitAmount += tx.Amount
+		*debitCount++
+	} else {
+		*creditAmount += tx.Amount
+		*creditCount++
+	}
 }

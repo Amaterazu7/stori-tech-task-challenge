@@ -20,9 +20,9 @@ type S3BucketRepository struct {
 }
 
 func NewS3BucketRepository(name string, region string) domain.HandleBucketRepository {
+	endpoint := os.Getenv("AWS_S3_BUCKET_ENDPOINT")
 	accessKey := os.Getenv("AWS_ACCESS_KEY_ID")
 	secretAccess := os.Getenv("AWS_SECRET_ACCESS_KEY")
-	endpoint := os.Getenv("AWS_S3_BUCKET_ENDPOINT")
 	s3ForcePathStyle := true
 	sess, err := session.NewSession(
 		&aws.Config{

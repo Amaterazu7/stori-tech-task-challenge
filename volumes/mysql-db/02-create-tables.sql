@@ -5,6 +5,7 @@ USE `transaction-processor`;
 CREATE TABLE account (
     id         varchar(50)                              not null,
     name       varchar(50)                              not null,
+    email      varchar(50)                              not null,
     asset      enum ('CASH', 'CRYPTO')                  not null,
     Type       enum ('USD', 'GBP', 'EUR', 'ETH', 'BTC') not null,
     updated_at datetime                                 not null,

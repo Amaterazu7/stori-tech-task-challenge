@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Transactions Email</title>
+</head>
+<body style="background-color: #dedede">
+    <div style="padding: 10px;">
+        <div style="display: flex; justify-content: center; padding-left: 20%;">
+            <img alt="Stori Card Cards" loading="lazy" width="640" height="350"
+                 decoding="async" data-nimg="1" style="border-radius: 20px"
+                 src="cid:stori.png"/>
+        </div>
+        <div style="display: flex; justify-content: center; margin-top: 15px; border-radius: 20px; background-color: mediumseagreen; padding: 45px;">
+            <div style="display: inline-block; width: 100%;">
+                <div style="display: flex; justify-content: center; width: 100%;">
+                    <h2 style="font-family: Helvetica, sans-serif; color: aliceblue; font-size: 1.5em; text-align: center; margin-bottom: 60px">
+                    Stori Card Bank Summary
+                </h2>
+                </div>
+                <div style="display: flex; justify-content: center; width: 100%;">
+                    <p style="font-family: Helvetica, sans-serif; margin-bottom: 35px; margin-top: 35px;">
+                    Hi, your statement is available in Mobile and Online Banking
+                </p>
+                </div>
+                <div style="display: flex; justify-content: center; width: 100%;">
+                    <p  style="font-family: Helvetica, sans-serif;">
+                    <b class="font-semibold">Total balance</b> is: &nbsp; &nbsp; &nbsp;
+                    <span style="font-family: Helvetica, sans-serif; font-size: 2em;">
+                       <b>$ {{ .TotalBalance }}</b>
+                    </span>
+                </p>
+                </div>
+                <div style="display: flex; justify-content: center; width: 100%;">
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <ul style="font-family: Helvetica, sans-serif;">
+                                        <li>Number of transactions in July:&nbsp; &nbsp; &nbsp;
+                                            <span style="font-size: 1.5em;">2</span>
+                                        </li>
+                                        <li>Number of transactions in August:&nbsp; &nbsp; &nbsp;
+                                            <span style="font-size: 1.5em;">2</span>
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td>
+                                    <ul style="font-family: Helvetica, sans-serif;">
+                                        <li>Average debit amount:&nbsp; &nbsp; &nbsp;
+                                            <span style="font-size: 1.5em;">$ {{ .AverageDebitAmount }}</span>
+                                        </li>
+                                        <li>Average credit amount:&nbsp; &nbsp; &nbsp;
+                                            <span style="font-size: 1.5em;">$ {{ .AverageCreditAmount }}</span>
+                                        </li>
+                                    </ul>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div style="display: flex; justify-content: center; width: 100%; margin-top: 80px;">
+                    <p style="font-family: Helvetica, sans-serif; text-align: center;">
+                        <b class="font-semibold">Thank you for being our customer.</b>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

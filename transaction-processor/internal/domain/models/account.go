@@ -25,6 +25,7 @@ const (
 type Account struct {
 	Id        uuid.UUID
 	Name      string
+	Email     string
 	Asset     AssetTypes
 	Type      AccountTypes
 	UpdatedAt time.Time

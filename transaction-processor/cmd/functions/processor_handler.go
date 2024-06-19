@@ -50,10 +50,9 @@ func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		infrastructure.NewMySqlTransactionRepository(dbConn),
 		persistence.NewS3BucketRepository(os.Getenv("AWS_S3_BUCKET_NAME"), os.Getenv("AWS_REGION")),
 	)
-	statusCode, processorErr := csvTransactionService.RunProcessor()
+	statusCode, processorResult, processorErr := csvTransactionService.RunProcessor()
 
-	emailSenderService := application.NewEmailSenderService()
-	statusCode, senderErr := emailSenderService.SendMessage() // TODO:: template_file as parameter
+	statusCode, senderErr := application.NewEmailSenderService().SendMessage(processorResult)
 
 	if processorErr != nil || senderErr != nil {
 		var msg string
