@@ -1,4 +1,4 @@
-.PHONY: build clean #deploy
+.PHONY: build clean deploy
 
 # =================================================================================================================== #
 # Vars
@@ -11,8 +11,11 @@ S3_BUCKET_NAME 	:= transaction-processor-bucket
 S3_BUCKET_URL 	:= http://localhost:4566/
 
 # =================================================================================================================== #
-# AWS S3
+# INFRA / AWS S3
 # =================================================================================================================== #
+docker-compose:
+	docker-compose -f ../docker-compose.yml up -d
+
 upload-csv:
 	aws s3 cp ../source/${FILE_NAME} s3://${S3_BUCKET_NAME}/${ACCOUNT_ID}_${FILE_NAME} \
     	--endpoint-url ${S3_BUCKET_URL}
@@ -32,9 +35,12 @@ clean:
 build:
 	env GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o bin/processor ${FUNCTION_PATH}/${HANDLER_PATH}
 
-start-local: format clean build
+start-lambda:
 	sls offline start --host 0.0.0.0
-	# sls offline start --stage development --region us-east-1
+
+start-offline: format clean build start-lambda
+
+start-app-local: docker-compose format clean build upload-csv start-lambda
 
 deploy: clean build
-	#sls deploy --verbose
+	sls deploy --verbose
