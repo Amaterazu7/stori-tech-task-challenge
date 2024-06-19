@@ -25,7 +25,7 @@
                 </div>
                 <div style="display: flex; justify-content: center; width: 100%;">
                     <p  style="font-family: Helvetica, sans-serif;">
-                    <b class="font-semibold">Total balance</b> is: &nbsp; &nbsp; &nbsp;
+                    <b class="font-semibold">Total balance is</b> &nbsp; &nbsp; &nbsp;
                     <span style="font-family: Helvetica, sans-serif; font-size: 2em;">
                        <b>$ {{ .TotalBalance }}</b>
                     </span>
@@ -37,12 +37,11 @@
                             <tr>
                                 <td>
                                     <ul style="font-family: Helvetica, sans-serif;">
-                                        <li>Number of transactions in July:&nbsp; &nbsp; &nbsp;
-                                            <span style="font-size: 1.5em;">2</span>
+                                    {{ range $key, $value := .MonthMap }}
+                                        <li>Number of transactions in {{ $key }}:&nbsp; &nbsp; &nbsp;
+                                            <span style="font-size: 1.5em;">{{ $value }}</span>
                                         </li>
-                                        <li>Number of transactions in August:&nbsp; &nbsp; &nbsp;
-                                            <span style="font-size: 1.5em;">2</span>
-                                        </li>
+                                    {{ end }}
                                     </ul>
                                 </td>
                                 <td>

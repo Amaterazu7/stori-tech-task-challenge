@@ -68,8 +68,10 @@ func (cts *CsvTransactionService) RunProcessor() (int, *models.ProcessorResult, 
 			return 500, &models.ProcessorResult{}, errors.New(fmt.Sprintf("Creating Transaction: %s", err.Error()))
 		}
 
-		fillValues(&tx, &debitAmount, &debitCount, &creditAmount, &creditCount)
+		cts.ProcessorResult.FillAvgValues(&tx, &debitAmount, &debitCount, &creditAmount, &creditCount)
+		cts.ProcessorResult.FillMap(&tx)
 		cts.ProcessorResult.AddBalance(tx.Amount)
+
 		err = cts.PersistTransaction(tx)
 		if err != nil {
 			return 500, &models.ProcessorResult{}, errors.New(fmt.Sprintf("Persisting Transaction: %s", err.Error()))
@@ -127,14 +129,4 @@ func createTransactionFromString(txCrud string, accountId string, transaction *m
 	transaction.Build(txCrudId, txAccountCrudId, txCrudAmount, txType, txCrudDate)
 
 	return nil
-}
-
-func fillValues(tx *models.Transaction, debitAmount, debitCount, creditAmount, creditCount *float64) {
-	if tx.TxType == models.DEBIT {
-		*debitAmount += tx.Amount
-		*debitCount++
-	} else {
-		*creditAmount += tx.Amount
-		*creditCount++
-	}
 }
