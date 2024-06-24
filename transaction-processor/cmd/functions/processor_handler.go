@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/amaterazu7/transaction-processor/internal/application"
@@ -47,7 +48,7 @@ func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	csvTransactionService := application.NewCsvTransactionService(
 		accountId,
 		infrastructure.NewMySqlAccountRepository(dbConn),
-		infrastructure.NewMySqlTransactionRepository(dbConn),
+		infrastructure.NewMySqlTransactionRepository(dbConn, context.Background()),
 		persistence.NewS3BucketRepository(os.Getenv("AWS_S3_BUCKET_NAME"), os.Getenv("AWS_REGION")),
 	)
 	statusCode, processorResult, processorErr := csvTransactionService.RunProcessor()
