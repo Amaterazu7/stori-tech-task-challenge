@@ -56,26 +56,43 @@ func (cts *CsvTransactionService) RunProcessor() (int, *models.ProcessorResult, 
 
 	content, err := cts.HandleBucketRepository.FindFileByName(fileName.String())
 	if err != nil {
-		return 502, &models.ProcessorResult{}, errors.New(err.Error())
+		return 502, &models.ProcessorResult{}, err
 	}
+
+	tx, err := cts.TransactionRepository.BeginTransaction()
+	if err != nil {
+		return 502, &models.ProcessorResult{}, errors.New(fmt.Sprintf(` - BeginTx, %s`, err.Error()))
+	}
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
+	txAccountCrudId, _ := uuid.Parse(cts.ProcessorResult.AccountId)
+	_ = cts.PersistTransaction(models.Transaction{Id: uuid.New(), AccountId: txAccountCrudId, Amount: 200.3, TxType: models.CREDIT, CreatedAt: time.Now()})
+	_ = cts.PersistTransaction(models.Transaction{Id: uuid.New(), AccountId: txAccountCrudId, Amount: -200.3, TxType: models.DEBIT, CreatedAt: time.Now()})
 
 	rows, debitAmount, debitCount, creditAmount, creditCount := 0, 0.0, 0.0, 0.0, 0.0
 	for _, line := range strings.Fields(strings.ReplaceAll(content, "txId;txDate;transaction", "")) {
 		rows = rows + 1
-		tx := models.Transaction{}
-		err = createTransactionFromString(line, cts.ProcessorResult.AccountId, &tx)
+		transaction := models.Transaction{}
+		err = createTransactionFromString(line, cts.ProcessorResult.AccountId, &transaction)
 		if err != nil {
 			return 500, &models.ProcessorResult{}, errors.New(fmt.Sprintf("Creating Transaction: %s", err.Error()))
 		}
 
-		cts.ProcessorResult.FillAvgValues(&tx, &debitAmount, &debitCount, &creditAmount, &creditCount)
-		cts.ProcessorResult.FillMap(&tx)
-		cts.ProcessorResult.AddBalance(tx.Amount)
-
-		err = cts.PersistTransaction(tx)
+		err = cts.PersistTransaction(transaction)
 		if err != nil {
 			return 500, &models.ProcessorResult{}, errors.New(fmt.Sprintf("Persisting Transaction: %s", err.Error()))
 		}
+
+		cts.ProcessorResult.FillAvgValues(&transaction, &debitAmount, &debitCount, &creditAmount, &creditCount)
+		cts.ProcessorResult.FillMap(&transaction)
+		cts.ProcessorResult.AddBalance(transaction.Amount)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return 502, &models.ProcessorResult{}, errors.New(fmt.Sprintf(` - CommitTx, %s`, err.Error()))
 	}
 
 	cts.ProcessorResult.CalculateAverageDebit(debitAmount, debitCount)
@@ -93,8 +110,8 @@ func (cts *CsvTransactionService) ValidateAccount() (bool, error) {
 	return true, nil
 }
 
-func (cts *CsvTransactionService) PersistTransaction(tx models.Transaction) error {
-	err := cts.TransactionRepository.Save(tx)
+func (cts *CsvTransactionService) PersistTransaction(transaction models.Transaction) error {
+	err := cts.TransactionRepository.Save(transaction)
 	if err != nil {
 		return err
 	}
